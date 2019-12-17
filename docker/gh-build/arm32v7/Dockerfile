@@ -5,7 +5,7 @@ RUN git clone https://github.com/rosenbjerg/BlockCoverageGeneratorWeb.git
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS backendBuilder
 WORKDIR /app
-COPY --from=gitCloner /project/ReportGeneratorServer/ ./
+COPY --from=gitCloner /project/BlockCoverageGeneratorWeb/ReportGeneratorServer/ ./
 RUN dotnet publish ReportGeneratorServer.csproj -c Release -r linux-arm -o build
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.0-buster-slim-arm32v7 AS runtime
