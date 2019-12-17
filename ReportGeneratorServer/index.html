@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Block Coverage Generator</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #212121;
+            font-family: 'Roboto', sans-serif;
+            color: #dcdcdc;
+        }
+        .container {
+            width: 600px;
+            max-width: 95%;
+            margin: 200px auto auto;
+        }
+        button {
+            float: right;
+        }
+        form {
+            background-color: #424242;
+            border-radius: 8px;
+            padding: 12px;
+            width: unset;
+        }
+        #result, h4 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h4>Get your block-coverage here:</h4>
+    <form id="form">
+        <input type="file" name="coverageFile">
+        <button type="submit" id="button">Generate coverage summary</button>
+    </form>
+    <br/>
+    <div id="result"></div>
+</div>
+<script>
+    const form = document.getElementById('form');
+    const result = document.getElementById('result');
+    const button = document.getElementById('button');
+
+    form.onsubmit = ev => {
+        ev.preventDefault();
+        button.disabled = true;
+        const formdata = new FormData(ev.target);
+
+        fetch('/generate', { method: "POST", body: formdata })
+            .then(response => response.json())
+            .then(summary => {
+                console.log(summary);
+                const covered = summary.Metrics.find(metric => metric.Name === 'Blocks covered');
+                const uncovered = summary.Metrics.find(metric => metric.Name === 'Blocks not covered');
+                result.innerHTML = 
+                    `<div>Blocks covered: ${covered.Value}</div>\n` +
+                    `<div>Blocks not covered: ${uncovered.Value}</div>` +
+                    `<div>Block coverage percentage: ${((covered.Value / (covered.Value + uncovered.Value)) * 100).toFixed(2)}%</div>`;
+            }).finally(() => button.disabled = false);
+    }
+</script>
+</body>
+</html>
