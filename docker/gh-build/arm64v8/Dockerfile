@@ -13,7 +13,6 @@ LABEL maintainer="Malte Rosenbjerg"
 LABEL description="coverage-gen-web on dotnet 3.0"
 LABEL repository="github.com/rosenbjerg/BlockCoverageGeneratorWeb"
 WORKDIR /app
-COPY --from=frontendBuilder /app/build ./public/
-ENV NXPLX_BUILD=$build
-EXPOSE 5353
+COPY --from=backendBuilder /app/build ./
+EXPOSE 5234
 ENTRYPOINT ["dotnet", "ReportGeneratorServer.dll"]  

@@ -23,7 +23,7 @@ namespace ReportGeneratorServer
 
         static async Task Main(string[] args)
         {
-            var server = new RedHttpServer();
+            var server = new RedHttpServer(5234);
 
             var tokenBucket = TokenBuckets.Construct()
                 .WithCapacity(5)
