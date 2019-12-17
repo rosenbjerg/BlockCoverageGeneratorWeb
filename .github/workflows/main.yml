@@ -1,0 +1,67 @@
+name: Build multi-arch docker images
+
+on:
+  pull_request:
+    branches: release
+
+jobs:
+  buildx:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v1
+      -
+        name: Set up Docker Buildx
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          version: latest
+      -
+        name: Enable experimental Docker features
+        run: |
+          echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json && sudo service docker restart
+      -
+        name: Login to Docker Hub
+        run: |
+          docker login --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
+      -
+        name: Build AMD64 image
+        run: |
+          docker build \
+            --output "type=image,push=false" \
+            --tag mrosenbjerg/coverage-gen-web:amd64 \
+            ./docker/gh-build/amd64
+      -
+        name: Build ARM64v8 image
+        run: |
+          docker build \
+            --output "type=image,push=false" \
+            --tag mrosenbjerg/coverage-gen-web:arm64v8 \
+            ./docker/gh-build/arm64v8
+      -
+        name: Build ARM32v7 image
+        run: |
+          docker build \
+            --output "type=image,push=false" \
+            --tag mrosenbjerg/coverage-gen-web:arm32v7 \
+            ./docker/gh-build/arm32v7
+      -
+        name: Push new images
+        run: |
+          docker push mrosenbjerg/coverage-gen-web:amd64 && \
+          docker push mrosenbjerg/coverage-gen-web:arm64v8 && \
+          docker push mrosenbjerg/coverage-gen-web:arm32v7
+      -
+        name: Create and push Docker manifest
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        run: |
+          docker manifest create mrosenbjerg/coverage-gen-web:latest \
+            mrosenbjerg/coverage-gen-web:amd64 \
+            mrosenbjerg/coverage-gen-web:arm64v8 \
+            mrosenbjerg/coverage-gen-web:arm32v7 && \
+          docker manifest annotate mrosenbjerg/coverage-gen-web:latest mrosenbjerg/coverage-gen-web:amd64 --arch amd64 --os linux && \
+          docker manifest annotate mrosenbjerg/coverage-gen-web:latest mrosenbjerg/coverage-gen-web:arm64v8 --arch arm64 --os linux && \
+          docker manifest annotate mrosenbjerg/coverage-gen-web:latest mrosenbjerg/coverage-gen-web:arm32v7 --arch arm --os linux && \
+          docker manifest push mrosenbjerg/coverage-gen-web:latest
