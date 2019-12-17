@@ -100,8 +100,11 @@ namespace ReportGeneratorServer
                 }
             });
 
-
+#if DEBUG
             await server.RunAsync();
+#else
+            await server.RunAsync("*");
+#endif
         }
 
         private static async Task<SummaryResult?> GenerateReport(string inputfile)
